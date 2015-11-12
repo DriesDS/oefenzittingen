@@ -7,32 +7,44 @@ call ginibre()
 contains
 
 	subroutine ginibre()
-		real, dimension(7,7) :: A, B
-		complex, dimension(7,7) :: C, C1, C2
+		integer, parameter :: M = 7
+		real, dimension(M,M) :: A, B
+		complex, dimension(M,M) :: C, Cher, L, Lprod
+		complex :: alpha, beta, test
+		integer :: i, info
 
-		call random_seed(2568)
+		call random_seed()
 		call random_number(A)
 		call random_number(B)
-		call gaussian(A,B,C1)
+		call gaussian(A,B,C)
 
-		write(*,'(7(e12.3,/)') A
-		write(*,'(7(e12.3,/)') B
-		write(*,'(7(e12.3,/)') C1
+		alpha = cmplx(1.0, 0.0)
+		beta = cmplx(0.0, 0.0)
+		call cgemm('N', 'C', M, M, M, alpha, C, M, C, M, beta, Cher, M)
+		C = Cher
 
-		C2 = transpose(C1)
-		C2 = conjg(C2)
+		call cpotrf('L',M,Cher,M,info)
 
-		C = matmul(C1,C2)
+		L = 0
+		do i = 1,M
+			L(i:,i) = Cher(i:,i)
+		enddo
 
-		write(*,'(7(e12.3,/)') C
+		call cgemm('N', 'C', M, M, M, alpha, L, M, L, M, beta, Lprod, M)
 
+		write(*,'(a)') '! equality within a range of 1.e-5: equality within a range of 1.e-6: '
+		do i = 1,M
+			write(*,'(a,t15,7(L2),t48,7(L2))') '! ', abs(C(i,:)-Lprod(i,:))<1.e-5, abs(C(i,:)-Lprod(i,:))<1.e-6
+		enddo
 	end subroutine
 
 	ELEMENTAL subroutine gaussian(a, b, c)
-		intent(in) :: a, b
-		intent(out) :: c
+		real, intent(in) :: a, b
+		complex, intent(out) :: c
+		complex :: minus1
 
-		c = sqrt(-2*log(a))*exp(8*atan(1.0)*sqrt(-1)*b)
+		minus1 = cmplx(-1.0, 0.0)
+		c = sqrt(-2*log(a))*exp(8*atan(1.0)*sqrt(minus1)*b)
 
 	end subroutine
 
