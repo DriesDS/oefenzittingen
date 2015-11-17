@@ -28,34 +28,69 @@ implicit none
 
 integer, parameter :: N=200
 double precision :: k
-type(FM) :: p, pi, fmk
-type(mp_real) :: mpp, mppi, mpfmk
-p = TO_FM('0.5')
-mpp = 
+type(FM) :: fm_p, fm_pi
+type(mp_real) :: mp_p, mp_pi
 call FM_SET(1000)
-pi = 4*atan(TO_FM('1.0'))
+p = TO_FM('0.5')
 
+call FM_PI(fm_pi)
+mp_pi = mppic
 k = 6
-fmk = TO_FM('6')
-call calc_pi(p,k,fmk,N,pi)
+
+call calc_pi(fm_p, fm_pi, mp_p, mp_pi, k, N)
+
+call calc_pi_fm(fm_p, fm_pi, k, N)
+call calc_pi_mp(mp_p, mp_pi, k, N)
 
 contains
 
-	subroutine calc_pi(p, k, fmk, N, pi)
-		type(FM) :: p, kp, pi, fmk
+	subroutine calc_pi(fm_p, fm_pi, mp_p, mp_pi, k, N)
+		type(FM) :: fm_p, fm_pi
+		type(mp_real) :: mp_p, mp_pi
 		integer :: i, N
 		double precision :: k
 
 		i = 0
-		write (*,'("iteratie: ", i0, "  pi= ",A)') i,TRIM(FM_FORMAT('E50.40',p))
 		do i = 1,N
-			p = sqrt( (1 - sqrt(1-p*p)) / 2)
+			fm_p = sqrt( (1 - sqrt(1-fm_p*fm_p)) / 2)
+			mp_p = sqrt( (1 - sqrt(1-mp_p*mp_p)) / 2)
 			k = 2*k
-			fmk = 2*fmk
-			!write (*,'("iteratie: ", i0, "  pi= ",A)') i,TRIM(FM_FORMAT('E100.90',k*p))
-			write (*,'("difference with pi: ", A)') TRIM(FM_FORMAT('E15.5',fmk*p-pi))
-			write (*,'(e15.6,a)') k, trim(FM_FORMAT('E30.20',p))
+
+			fm_cijfers = int(floor(-(log(abs(k*fm_p-fm_pi))/log(TO_FM('10')))))
+			mp_cijfers = int(floor(-(log(abs(k*mp_p-mp_pi))/log('10')))
+			write (*, '(2(i10)') fm_cijfers, mp_cijfers
 		enddo
 	end subroutine
+
+	subroutine calc_pi_fm(fm_p, fm_pi, k, N)
+		type(FM) :: fm_p, fm_pi
+		integer :: i, N
+		double precision :: k
+
+		i = 0
+		do i = 1,N
+			fm_p = sqrt( (1 - sqrt(1-fm_p*fm_p)) / 2)
+			k = 2*k
+
+			fm_cijfers = int(floor(-(log(abs(k*fm_p-fm_pi))/log(TO_FM('10')))))
+			write (*, '(i10)') fm_cijfers
+		enddo
+	end subroutine
+
+	subroutine calc_pi_mp(mp_p, mp_pi, k, N)
+		type(mp) :: mp_p, mp_pi
+		integer :: i, N
+		double precision :: k
+
+		i = 0
+		do i = 1,N
+			mp_p = sqrt( (1 - sqrt(1-mp_p*mp_p)) / 2)
+			k = 2*k
+
+			mp_cijfers = int(floor(-(log(abs(k*mp_p-mp_pi))/log('10'))))
+			write (*, '(i10)') mp_cijfers
+		enddo
+	end subroutine
+
 
 end program
