@@ -1,0 +1,8 @@
+! equality within a range of 1.e-5: equality within a range of 1.e-6: 
+!              T T T T T T T                    F T T T T F T
+!              T T T T T T T                    T T T T T T T
+!              T T T T T T T                    T T T T T T T
+!              T T T T T T T                    T T T T T T T
+!              T T T T T T T                    T T T T T T T
+!              T T T T T T T                    T T T T T T T
+!              T T T T T T T                    T T T T T T T
