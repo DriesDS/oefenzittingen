@@ -61,43 +61,48 @@ implicit none
 
 integer, parameter :: N=200
 double precision :: k
-type(FM) :: fm_p, fm_pi
+type(FM) :: fm_p, fm_pie
 type(mp_real) :: mp_p, mp_pi
 call FM_SET(1000)
-p = TO_FM('0.5')
+call mpinit(1000)
+fm_p = TO_FM('0.5')
+mp_p = '0.5'
 
-call FM_PI(fm_pi)
+call FM_PI(fm_pie)
 mp_pi = mppic
 k = 6
 
-call calc_pi(fm_p, fm_pi, mp_p, mp_pi, k, N)
+call calc_pi(fm_p, fm_pie, mp_p, mp_pi, k, N)
 
-!call calc_pi_fm(fm_p, fm_pi, k, N)
+!call calc_pi_fm(fm_p, fme_pi, k, N)
 !call calc_pi_mp(mp_p, mp_pi, k, N)
 
 contains
 
 	subroutine calc_pi(fm_p, fm_pie, mp_p, mp_pi, k, N)
 		type(FM) :: fm_p, fm_pie
-		type(mp_real) :: mp_p, mp_pi
-		integer :: i, N
-		double precision :: k
+		type(mp_real) :: mp_p, mp_pi, ten
+		integer :: i, N, mp_cijfers, fm_cijfers
+		double precision :: k, cijfers
 
+		ten = '10'
 		i = 0
 		do i = 1,N
 			fm_p = sqrt( (1 - sqrt(1-fm_p*fm_p)) / 2)
 			mp_p = sqrt( (1 - sqrt(1-mp_p*mp_p)) / 2)
 			k = 2*k
 
-			fm_cijfers = int(floor(-(log(abs(k*fm_p-fm_pie))/log(TO_FM('10')))))
-			mp_cijfers = int(floor(-(log(abs(k*mp_p-mp_pi))/log('10')))
-			write (*, '(2(i10)') fm_cijfers, mp_cijfers
+			cijfers = -(log(abs(k*fm_p-fm_pie))/log(TO_FM('10')))
+			fm_cijfers = int(floor(cijfers))
+			cijfers = -(log(abs(k*mp_p-mp_pi))/log(ten))
+			mp_cijfers = int(floor(cijfers))
+			write (*, '(2(i10))') fm_cijfers, mp_cijfers
 		enddo
 	end subroutine
 
 	subroutine calc_pi_fm(fm_p, fm_pie, k, N)
-		type(FM) :: fm_p, fm_pi
-		integer :: i, N
+		type(FM) :: fm_p, fm_pie
+		integer :: i, N, fm_cijfers
 		double precision :: k, cijfers
 
 		i = 0
@@ -112,8 +117,8 @@ contains
 	end subroutine
 
 	subroutine calc_pi_mp(mp_p, mp_pi, k, N)
-		type(mp) :: mp_p, mp_pi
-		integer :: i, N
+		type(mp_real) :: mp_p, mp_pi, ten
+		integer :: i, N, mp_cijfers
 		double precision :: k, cijfers
 
 		i = 0
@@ -122,7 +127,7 @@ contains
 			k = 2*k
 		enddo
 
-		cijfers = -(log(abs(k*mp_p-mp_pi))/log('10'))
+		cijfers = -(log(abs(k*mp_p-mp_pi))/log(ten))
 		mp_cijfers = int(floor(cijfers))
 		write (*, '(i10)') mp_cijfers
 	end subroutine
