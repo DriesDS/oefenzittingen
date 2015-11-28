@@ -37,7 +37,7 @@ program timingtest
     !--------------------------------------------------------------------------
     ! Main timing program
     !--------------------------------------------------------------------------
-    integer :: k, N, blocksize, idx_i, idx_j
+    integer :: k, N, idx_i, idx_j
     integer, parameter :: blocksize=100
     real :: flops
     real :: dummy_i, dummy_j
@@ -46,7 +46,8 @@ program timingtest
     real(kind=dp), dimension(:,:), allocatable :: c_matmul
 
 
-    do N = 100, 100, 1000
+    write(*,'(A10,5A15))') "", "lus", "dotprod", "Blas", "block", "matmul"
+    do N = 100, 2000, 100
 	    ! Make sure we use the same pseudo-random numbers each time by initializing
 	    ! the seed to a certain value.
 	    call random_seed(size=k)
@@ -67,6 +68,8 @@ program timingtest
 	    call random_number(b)
 	    call a_maal_b_matmul(a,b,c_matmul) ! Reference value
 	    
+	    write(*,'(I10)', advance="no") N
+	
 	    ! 1. Three nested loops
 	    call do_timing( "JKI", a_maal_b_jki )
 	    
@@ -85,7 +88,7 @@ program timingtest
 	    write(*,*)
 	    
 	    ! Clean up
-	    deallocate(a, b, c, c_matmul)
+	    deallocate(a, b, c, c_matmul,seed)
 	enddo
 
 contains
@@ -112,8 +115,8 @@ contains
         mynorm = sqrt(sum((c_matmul-c)**2))/sqrt(sum(c_matmul**2))
         if (mynorm >= 1d-10) write(0,'(A,A)') "There is an error in calculating the product with ", name
 
-	    write(*,'(F7.2)',advance="no") t2-t1
+        write(*,'(F15.8)',advance="no") t2-t1
 
     end subroutine do_timing
 
-end program dmr
+end program timingtest 
