@@ -286,18 +286,24 @@ contains
         real(kind=dp), dimension(:,:), intent(in)  :: a, b
         real(kind=dp), dimension(:,:), intent(out) :: c
         integer, intent(in) :: blocksize
-        real(kind=dp), dimension(blocksize,blocksize) :: cloc
-        integer :: N, i, j, k
-        N=size(a,1)
+        integer, parameter :: N=size(a,1), rows = blocksize^2/N
+        real(kind=dp), dimension(N,N) :: at
+        real(kind=dp), dimension(size(a,1), blocksize^2/N) :: aloc, bloc
+        real(kind=dp), dimension(blocksize^2/N, blocksize^2/N) :: cloc
+        integer :: N, i, j, k, rows
+        at = transpose(a)
         c = 0.0_dp
-        do i=1,N/blocksize
-            do j=1,N/blocksize
-                do k=1,N/blocksize
-                    call a_maal_b_kji( a((i-1)*blocksize+1:i*blocksize,(k-1)*blocksize+1:k*blocksize), &
-                            b((k-1)*blocksize+1:k*blocksize,(j-1)*blocksize+1:j*blocksize),cloc)
-                    c((i-1)*blocksize+1:i*blocksize,(j-1)*blocksize+1:j*blocksize) = &
-                            c((i-1)*blocksize+1:i*blocksize,(j-1)*blocksize+1:j*blocksize) + cloc
+        do i=1,N/rows
+            bloc = b(:,(i-1)*rows+1:i*rows)
+            do j=1,N/rows
+                aloc = at(:,(i-1)*rows+1:i*rows)
+                cloc = 0d0
+                do k = 1,rows
+                    do l = 1,rows
+                        cloc(l,k) = dot_product(aloc(:,l),bloc(:,k))
+                    enddo
                 enddo
+                c((j-1)*rows+1:j*rows,(i-1)*rows+1:i*rows)
             enddo
         enddo
     end subroutine a_maal_b_rows
