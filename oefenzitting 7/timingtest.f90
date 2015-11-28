@@ -46,7 +46,7 @@ program timingtest
     real(kind=dp), dimension(:,:), allocatable :: c_matmul
 
 
-    write(*,'(A10,5A15))') "", "lus", "dotprod", "Blas", "block", "matmul"
+    write(*,'(A10,5(A15))') "", "lus", "dotprod", "Blas", "block", "matmul"
     do N = 100, 2000, 100
 	    ! Make sure we use the same pseudo-random numbers each time by initializing
 	    ! the seed to a certain value.

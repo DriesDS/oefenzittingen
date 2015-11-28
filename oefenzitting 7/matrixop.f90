@@ -262,7 +262,7 @@ contains
                     aloc = a( (i-1)*blocksize+1:i*blocksize,(k-1)*blocksize+1:k*blocksize )
                     bloc = b( (k-1)*blocksize+1:k*blocksize,(j-1)*blocksize+1:j*blocksize )
                     clocadd=0
-                    call a_maal_b_kji( aloc, bloc, cloc )
+                    call a_maal_b_kji( aloc, bloc, clocadd )
                     cloc = cloc + clocadd
                 enddo
                 c((i-1)*blocksize+1:i*blocksize,(j-1)*blocksize+1:j*blocksize) = cloc
@@ -282,7 +282,7 @@ contains
     ! 8. Eigen matrixprod function
     !--------------------------------------------------------------------------
 
-    subroutine a_maal_b_blocks(a, b, c, blocksize)
+    subroutine a_maal_b_rows(a, b, c, blocksize)
         real(kind=dp), dimension(:,:), intent(in)  :: a, b
         real(kind=dp), dimension(:,:), intent(out) :: c
         integer, intent(in) :: blocksize
@@ -300,6 +300,6 @@ contains
                 enddo
             enddo
         enddo
-    end subroutine a_maal_b_blocks
+    end subroutine a_maal_b_rows
 
 end module matrixop
