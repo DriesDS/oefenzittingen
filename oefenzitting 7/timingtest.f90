@@ -12,7 +12,7 @@
 !   Bart Vandewoestyne, Sizing Servers Lab, Bruges, Belgium
 !
 
-program dmr
+program timingtest
     use matrixop
     implicit none
     !--------------------------------------------------------------------------
@@ -38,59 +38,55 @@ program dmr
     ! Main timing program
     !--------------------------------------------------------------------------
     integer :: k, N, blocksize, idx_i, idx_j
+    integer, parameter :: blocksize=100
     real :: flops
     real :: dummy_i, dummy_j
     integer, dimension(:), allocatable :: seed
     real(kind=dp), dimension(:,:), allocatable :: a, b, c
     real(kind=dp), dimension(:,:), allocatable :: c_matmul
 
-    ! Request the N and blocksize
-    write(unit=*, fmt="(A)", advance="no") "Enter the value for N: "
-    read *, N
-    write(unit=*, fmt="(A)", advance="no") "Enter the blocksize of the sub-blocks: "
-    read *, blocksize
 
-    ! Make sure we use the same pseudo-random numbers each time by initializing
-    ! the seed to a certain value.
-    call random_seed(size=k)
-    allocate(seed(k))
-    seed = N
-    call random_seed(put=seed)
+    do N = 100, 100, 1000
+	    ! Make sure we use the same pseudo-random numbers each time by initializing
+	    ! the seed to a certain value.
+	    call random_seed(size=k)
+	    allocate(seed(k))
+	    seed = N
+	    call random_seed(put=seed)
 
-    ! Calculate some random indices for the element c_ij that we are going to use
-    ! to check if the matrix computation went ok.
-    call random_number(dummy_i)
-    call random_number(dummy_j)
-    idx_i = floor(N*dummy_i) + 1
-    idx_j = floor(N*dummy_j) + 1
+	    ! Calculate some random indices for the element c_ij that we are going to use
+	    ! to check if the matrix computation went ok.
+	    call random_number(dummy_i)
+	    call random_number(dummy_j)
+	    idx_i = floor(N*dummy_i) + 1
+	    idx_j = floor(N*dummy_j) + 1
 
-    ! Allocate the matrices and one reference matrix
-    allocate(a(N,N), b(N,N), c(N,N), c_matmul(N,N))
-    call random_number(a)
-    call random_number(b)
-    call a_maal_b_matmul(a,b,c_matmul) ! Reference value
+	    ! Allocate the matrices and one reference matrix
+	    allocate(a(N,N), b(N,N), c(N,N), c_matmul(N,N))
+	    call random_number(a)
+	    call random_number(b)
+	    call a_maal_b_matmul(a,b,c_matmul) ! Reference value
+	    
+	    ! 1. Three nested loops
+	    call do_timing( "JKI", a_maal_b_jki )
+	    
+	    ! 2. Two nested loops with dot_product and explicit transpose of matrix A
+	    call do_timing( "IJ TP DOT_PRODUCT", a_maal_b_transp_ij_dot_product )
+	    
+	    ! 3. Using BLAS
+	    call do_timing( "BLAS DGEMM", a_maal_b_blas )
+	    
+	    ! 4. In blocks
+	    call do_timing( "IN BLOCKS", method_blocks=a_maal_b_blocks )
+	    
+	    ! 5. Intrinsic matmul function
+	    call do_timing( "MATMUL", a_maal_b_matmul )
 
-    ! Start the timings
-    print *, ""
-    write(unit=*, fmt="(A)") "TIMING RESULTS:"
-    
-    ! 1. Three nested loops
-    call do_timing( "JKI", a_maal_b_jki )
-    
-    ! 2. Two nested loops with dot_product and explicit transpose of matrix A
-    call do_timing( "IJ TP DOT_PRODUCT", a_maal_b_transp_ij_dot_product )
-    
-    ! 3. Using BLAS
-    call do_timing( "BLAS DGEMM", a_maal_b_blas )
-    
-    ! 4. In blocks
-    call do_timing( "IN BLOCKS", method_blocks=a_maal_b_blocks )
-    
-    ! 5. Intrinsic matmul function
-    call do_timing( "MATMUL", a_maal_b_matmul )
-    
-    ! Clean up
-    deallocate(a, b, c, c_matmul)
+	    write(*,*)
+	    
+	    ! Clean up
+	    deallocate(a, b, c, c_matmul)
+	enddo
 
 contains
 
@@ -112,9 +108,11 @@ contains
         end if
         ! Compute the Frobenius norm of the error and divide by the Frobenius norm
         ! of the exact matrixproduct to get some kind of relative error.
+        ! print on stderr if the norm is to big
         mynorm = sqrt(sum((c_matmul-c)**2))/sqrt(sum(c_matmul**2))
+        if (mynorm >= 1d-10) write(0,'(A,A)') "There is an error in calculating the product with ", name
 
-	print "(A18, F7.2, A, ES9.2, A, ES9.2)", name // ": ", t2-t1, " sec, test = ", c(idx_i, idx_j), ", relative error = ", mynorm
+	    write(*,'(F7.2)',advance="no") t2-t1
 
     end subroutine do_timing
 
