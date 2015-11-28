@@ -37,17 +37,20 @@ program timingtest
     !--------------------------------------------------------------------------
     ! Main timing program
     !--------------------------------------------------------------------------
-    integer :: k, N, idx_i, idx_j
+    integer :: i, k, N, idx_i, idx_j
     integer, parameter :: blocksize=100
     real :: flops
     real :: dummy_i, dummy_j
+    integer, dimension(7) :: Ns
     integer, dimension(:), allocatable :: seed
     real(kind=dp), dimension(:,:), allocatable :: a, b, c
     real(kind=dp), dimension(:,:), allocatable :: c_matmul
 
-
+    Ns = (/ 100, 200, 400, 500, 800, 1000, 1600, 2000 /)
     write(*,'(A10,5(A15))') "", "lus", "dotprod", "Blas", "block", "matmul"
-    do N = 100, 2000, 100
+    do i = 1,7
+        N = Ns(i)
+
 	    ! Make sure we use the same pseudo-random numbers each time by initializing
 	    ! the seed to a certain value.
 	    call random_seed(size=k)
