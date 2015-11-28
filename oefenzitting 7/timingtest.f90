@@ -84,7 +84,10 @@ program timingtest
 	    
 	    ! 5. Intrinsic matmul function
 	    call do_timing( "MATMUL", a_maal_b_matmul )
-
+	
+	    ! 6. eigen ontworpen function
+	    call do_timing( "EIGEN", method_blocks=a_maal_b_eigen )
+	    
 	    write(*,*)
 	    
 	    ! Clean up
@@ -113,7 +116,9 @@ contains
         ! of the exact matrixproduct to get some kind of relative error.
         ! print on stderr if the norm is to big
         mynorm = sqrt(sum((c_matmul-c)**2))/sqrt(sum(c_matmul**2))
-        if (mynorm >= 1d-10) write(0,'(A,A)') "There is an error in calculating the product with ", name
+        if (mynorm >= 1d-10) write(0,'(A,A,A,f15.5)') "There is an error in calculating the product with " &
+                , name, "rel err: ", mynorm
+        
 
         write(*,'(F15.8)',advance="no") t2-t1
 

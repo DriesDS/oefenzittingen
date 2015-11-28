@@ -282,15 +282,16 @@ contains
     ! 8. Eigen matrixprod function
     !--------------------------------------------------------------------------
 
-    subroutine a_maal_b_rows(a, b, c, blocksize)
+    subroutine a_maal_b_eigen(a, b, c, blocksize)
         real(kind=dp), dimension(:,:), intent(in)  :: a, b
         real(kind=dp), dimension(:,:), intent(out) :: c
         integer, intent(in) :: blocksize
-        integer, parameter :: N=size(a,1), rows = blocksize^2/N
-        real(kind=dp), dimension(N,N) :: at
-        real(kind=dp), dimension(size(a,1), blocksize^2/N) :: aloc, bloc
-        real(kind=dp), dimension(blocksize^2/N, blocksize^2/N) :: cloc
-        integer :: N, i, j, k, rows
+        real(kind=dp), dimension(size(a,1),size(a,1)) :: at
+        real(kind=dp), dimension(size(a,1), blocksize**2/size(a,1)) :: aloc, bloc
+        real(kind=dp), dimension(blocksize**2/size(a,1), blocksize**2/size(a,1)) :: cloc
+        integer :: N, i, j, k, l, rows
+        N = size(a,1)
+        rows = blocksize**2/N
         at = transpose(a)
         c = 0.0_dp
         do i=1,N/rows
@@ -303,9 +304,9 @@ contains
                         cloc(l,k) = dot_product(aloc(:,l),bloc(:,k))
                     enddo
                 enddo
-                c((j-1)*rows+1:j*rows,(i-1)*rows+1:i*rows)
+                c((j-1)*rows+1:j*rows,(i-1)*rows+1:i*rows) = cloc
             enddo
         enddo
-    end subroutine a_maal_b_rows
+    end subroutine a_maal_b_eigen
 
 end module matrixop
