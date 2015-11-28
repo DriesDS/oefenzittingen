@@ -19,6 +19,7 @@ contains
 		call gaussian(A,B,C)
 
 		alpha = cmplx(1.0, 0.0)
+		write(*,*) PRECISION(alpha)
 		beta = cmplx(0.0, 0.0)
 		call cgemm('N', 'C', M, M, M, alpha, C, M, C, M, beta, Cher, M)
 		C = Cher
