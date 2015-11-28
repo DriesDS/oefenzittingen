@@ -29,7 +29,7 @@ program timingtest
         subroutine a_maal_b_blocks_interface(a,b,c,blocksize)
             import dp
             real(kind=dp), dimension(:,:), intent(in)  :: a, b
-            real(kind=dp), dimension(:,:), intent(out) :: c
+	    real(kind=dp), dimension(:,:), intent(out) :: c
             integer, intent(in) :: blocksize
         end subroutine a_maal_b_blocks_interface
     end interface

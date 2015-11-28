@@ -297,7 +297,7 @@ contains
         do i=1,N/rows
             bloc = b(:,(i-1)*rows+1:i*rows)
             do j=1,N/rows
-                aloc = at(:,(i-1)*rows+1:i*rows)
+                aloc = at(:,(j-1)*rows+1:j*rows)
                 cloc = 0d0
                 do k = 1,rows
                     do l = 1,rows
