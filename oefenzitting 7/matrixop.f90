@@ -251,6 +251,41 @@ contains
         real(kind=dp), dimension(:,:), intent(in)  :: a, b
         real(kind=dp), dimension(:,:), intent(out) :: c
         integer, intent(in) :: blocksize
+        real(kind=dp), dimension(blocksize,blocksize) :: cloc, aloc, bloc, clocadd
+        integer :: N, i, j, k
+        N=size(a,1)
+        c = 0.0_dp
+        do i=1,N/blocksize
+            do j=1,N/blocksize
+                cloc=0
+                do k=1,N/blocksize
+                    aloc = a( (i-1)*blocksize+1:i*blocksize,(k-1)*blocksize+1:k*blocksize )
+                    bloc = b( (k-1)*blocksize+1:k*blocksize,(j-1)*blocksize+1:j*blocksize )
+                    clocadd=0
+                    call a_maal_b_kji( aloc, bloc, cloc )
+                    cloc = cloc + clocadd
+                enddo
+                c((i-1)*blocksize+1:i*blocksize,(j-1)*blocksize+1:j*blocksize) = cloc
+            enddo
+        enddo
+    end subroutine a_maal_b_blocks
+    !--------------------------------------------------------------------------
+    ! 7. Intrinsic matmul function
+    !--------------------------------------------------------------------------
+
+    subroutine a_maal_b_matmul(a, b, c)
+        real(kind=dp), dimension(:,:), intent(in)  :: a, b
+        real(kind=dp), dimension(:,:), intent(out) :: c
+        c = matmul( a, b ) ! Already completed
+    end subroutine a_maal_b_matmul
+    !--------------------------------------------------------------------------
+    ! 8. Eigen matrixprod function
+    !--------------------------------------------------------------------------
+
+    subroutine a_maal_b_blocks(a, b, c, blocksize)
+        real(kind=dp), dimension(:,:), intent(in)  :: a, b
+        real(kind=dp), dimension(:,:), intent(out) :: c
+        integer, intent(in) :: blocksize
         real(kind=dp), dimension(blocksize,blocksize) :: cloc
         integer :: N, i, j, k
         N=size(a,1)
@@ -266,14 +301,5 @@ contains
             enddo
         enddo
     end subroutine a_maal_b_blocks
-    !--------------------------------------------------------------------------
-    ! 7. Intrinsic matmul function
-    !--------------------------------------------------------------------------
-
-    subroutine a_maal_b_matmul(a, b, c)
-        real(kind=dp), dimension(:,:), intent(in)  :: a, b
-        real(kind=dp), dimension(:,:), intent(out) :: c
-        c = matmul( a, b ) ! Already completed
-    end subroutine a_maal_b_matmul
 
 end module matrixop
