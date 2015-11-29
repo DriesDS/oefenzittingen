@@ -41,14 +41,14 @@ program timingtest
     integer, parameter :: blocksize=100
     real :: flops
     real :: dummy_i, dummy_j
-    integer, dimension(7) :: Ns
+    integer, dimension(6) :: Ns
     integer, dimension(:), allocatable :: seed
     real(kind=dp), dimension(:,:), allocatable :: a, b, c
     real(kind=dp), dimension(:,:), allocatable :: c_matmul
 
-    Ns = (/ 100, 200, 400, 500, 800, 1000, 1600, 2000 /)
+    Ns = (/ 100, 200, 400, 500, 1000, 2000 /)
     write(*,'(A10,5(A15))') "", "lus", "dotprod", "Blas", "block", "matmul"
-    do i = 1,7
+    do i = 1,6
         N = Ns(i)
 
 	    ! Make sure we use the same pseudo-random numbers each time by initializing
