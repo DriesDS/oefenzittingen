@@ -93,12 +93,22 @@ program timingtest
 	    ! 6. eigen ontworpen function
 	    call do_timing( "EIGEN", timings(i,6,:), method_blocks=a_maal_b_eigen )
 	    
-	    write(*,*)
-	    
 	    ! Clean up
 	    deallocate(a, b, c, c_matmul,seed)
+	
+	    write(*,'(6(f12.8))') timings(i,:,2)
+	
+	    write(0,*) N
+	
+	enddo
 
-	    write(*,'(I10,6(f12.8)') N, timings(i,:,2)
+	write(*,*) "maximum tijden:"
+	do i = 1,6
+		write(*,'(I10,6(f12.8))') Ns(i), timings(i,:,3)
+	enddo
+	write(*,*) "minimum tijden:"
+	do i = 1,6
+		write(*,'(I10,6(f12.8))') Ns(i), timings(i,:,1)
 	enddo
 
 contains
@@ -108,12 +118,13 @@ contains
         procedure(a_maal_b_interface), optional :: method
         procedure(a_maal_b_blocks_interface), optional :: method_blocks
         real(kind=dp) :: mynorm
+        real(kind=dp), dimension(3) :: times
         real :: t1, t2, totaltime, maxtime, mintime
         integer :: i
         ! Do the timing 3 times
         totaltime = 0
         maxtime = 0
-        mintime = 1d100
+        mintime = 1d10
         do i = 1,nb
 	        if( present(method) ) then
 	            call cpu_time(t1)
@@ -137,8 +148,8 @@ contains
         
 
         times(1) = mintime
-        times(2) = totaltime/N
-        times(1) = maxtime
+        times(2) = totaltime/nb
+        times(3) = maxtime
 
     end subroutine do_timing
 
