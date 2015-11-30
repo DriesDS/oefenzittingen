@@ -43,11 +43,13 @@ program timingtest
     real :: dummy_i, dummy_j
     integer, dimension(6) :: Ns
     integer, dimension(:), allocatable :: seed
+    integer, parameter :: nb=5
     real(kind=dp), dimension(:,:), allocatable :: a, b, c
     real(kind=dp), dimension(:,:), allocatable :: c_matmul
+    real(kind=dp), dimension(6,6,3) :: timings
 
     Ns = (/ 100, 200, 400, 500, 1000, 2000 /)
-    write(*,'(A10,5(A15))') "", "lus", "dotprod", "Blas", "block", "matmul"
+    write(*,'(A10,6(A12))') "", "lus", "dotprod", "Blas", "block", "matmul", "eigen"
     do i = 1,6
         N = Ns(i)
 
@@ -74,47 +76,58 @@ program timingtest
 	    write(*,'(I10)', advance="no") N
 	
 	    ! 1. Three nested loops
-	    call do_timing( "JKI", a_maal_b_jki )
+	    call do_timing( "JKI", timings(i,1,:), a_maal_b_jki )
 	    
 	    ! 2. Two nested loops with dot_product and explicit transpose of matrix A
-	    call do_timing( "IJ TP DOT_PRODUCT", a_maal_b_transp_ij_dot_product )
+	    call do_timing( "IJ TP DOT_PRODUCT", timings(i,2,:), a_maal_b_transp_ij_dot_product )
 	    
 	    ! 3. Using BLAS
-	    call do_timing( "BLAS DGEMM", a_maal_b_blas )
+	    call do_timing( "BLAS DGEMM", timings(i,3,:), a_maal_b_blas )
 	    
 	    ! 4. In blocks
-	    call do_timing( "IN BLOCKS", method_blocks=a_maal_b_blocks )
+	    call do_timing( "IN BLOCKS", timings(i,4,:), method_blocks=a_maal_b_blocks )
 	    
 	    ! 5. Intrinsic matmul function
-	    call do_timing( "MATMUL", a_maal_b_matmul )
+	    call do_timing( "MATMUL", timings(i,5,:), a_maal_b_matmul )
 	
 	    ! 6. eigen ontworpen function
-	    call do_timing( "EIGEN", method_blocks=a_maal_b_eigen )
+	    call do_timing( "EIGEN", timings(i,6,:), method_blocks=a_maal_b_eigen )
 	    
 	    write(*,*)
 	    
 	    ! Clean up
 	    deallocate(a, b, c, c_matmul,seed)
+
+	    write(*,'(I10,6(f12.8)') N, timings(i,:,2)
 	enddo
 
 contains
 
-    subroutine do_timing( name, method, method_blocks )
+    subroutine do_timing( name, times, method, method_blocks )
         character(len=*), intent(in) :: name
         procedure(a_maal_b_interface), optional :: method
         procedure(a_maal_b_blocks_interface), optional :: method_blocks
         real(kind=dp) :: mynorm
-        real :: t1, t2
-        ! Do the timing
-        if( present(method) ) then
-            call cpu_time(t1)
-            call method( a, b, c )
-            call cpu_time(t2)
-        else
-            call cpu_time(t1)
-            call method_blocks( a, b, c, blocksize)
-            call cpu_time(t2)
-        end if
+        real :: t1, t2, totaltime, maxtime, mintime
+        integer :: i
+        ! Do the timing 3 times
+        totaltime = 0
+        maxtime = 0
+        mintime = 1d100
+        do i = 1,nb
+	        if( present(method) ) then
+	            call cpu_time(t1)
+	            call method( a, b, c )
+	            call cpu_time(t2)
+	        else
+	            call cpu_time(t1)
+	            call method_blocks( a, b, c, blocksize)
+	            call cpu_time(t2)
+	        end if
+	        totaltime = totaltime + t2-t1
+	        if (t2-t1 < mintime) mintime = t2-t1
+	        if (t2-t1 > maxtime) maxtime = t2-t1
+	    enddo
         ! Compute the Frobenius norm of the error and divide by the Frobenius norm
         ! of the exact matrixproduct to get some kind of relative error.
         ! print on stderr if the norm is to big
@@ -123,7 +136,9 @@ contains
                 , name, "rel err: ", mynorm
         
 
-        write(*,'(F15.8)',advance="no") t2-t1
+        times(1) = mintime
+        times(2) = totaltime/N
+        times(1) = maxtime
 
     end subroutine do_timing
 
