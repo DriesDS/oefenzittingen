@@ -248,7 +248,13 @@ contains
     !--------------------------------------------------------------------------
 
     subroutine a_maal_b_blocks(a, b, c, blocksize)
-        real(kind=dp), dimension(:,:), intent(in)  :: a, b
+        do k = 1,N
+            do j = 1,N
+                do i = 1,N
+                    c(i,j) = c(i,j) + a(i,k)*b(k,j)
+                enddo
+            enddo
+        enddo
         real(kind=dp), dimension(:,:), intent(out) :: c
         integer, intent(in) :: blocksize
         real(kind=dp), dimension(blocksize,blocksize) :: cloc, aloc, bloc, clocadd
@@ -261,9 +267,13 @@ contains
                 do k=1,N/blocksize
                     aloc = a( (i-1)*blocksize+1:i*blocksize,(k-1)*blocksize+1:k*blocksize )
                     bloc = b( (k-1)*blocksize+1:k*blocksize,(j-1)*blocksize+1:j*blocksize )
-                    clocadd=0
-                    call a_maal_b_kji( aloc, bloc, clocadd )
-                    cloc = cloc + clocadd
+                    do l=1,blocksize
+                        do m = 1,blocksize
+                            do p = 1,blocksize
+                                cloc(p,m) = cloc(p,m) + aloc(p,l)*bloc(l,m)
+                            enddo
+                        enddo
+                    enddo
                 enddo
                 c((i-1)*blocksize+1:i*blocksize,(j-1)*blocksize+1:j*blocksize) = cloc
             enddo
